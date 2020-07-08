@@ -5,7 +5,7 @@
 //public:
 CColorImage::CColorImage(QColor color, QWidget *parent) : QWidget(parent)
 {
-
+    m_color = color;
 }
 
 //protected:
