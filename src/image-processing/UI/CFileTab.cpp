@@ -133,33 +133,65 @@ void CFileTab::showImportFileCount(){
 }
 //private slots:
 void CFileTab::onAddImageClickded(){
-
+    QStringList files = QFileDialog::getOpenFileNames(this,
+                                                      "Select one or more files to open",
+                                                      "/home",
+                                                      "Images (*.png *.jpeg *.jpg *.gif *.bmp)");
+    m_pFileListWidget->addItems(files);
+    showImportFileCount();
 }
 
 void CFileTab::onAddFolderClickded(){
+    QStringList result;
+    QStringList listType;
+    for(int i=0; i<m_pExtListWidget->count(); i++){
+        listType.append("*" + m_pExtListWidget->item(i)->text());
+    }
 
+    QString directory =
+        QDir::toNativeSeparators(QFileDialog::getExistingDirectory(this, tr("Find Files"), QDir::currentPath()));
+
+    if (!directory.isEmpty()) {
+        findRecursion(directory, listType, &result);
+    }
+
+    m_pFileListWidget->addItems(result);
+    showImportFileCount();
 }
 
 void CFileTab::onRemoveFileClickded(){
-
+    qDeleteAll(m_pFileListWidget->selectedItems());
+    showImportFileCount();
 }
 
 void CFileTab::onClearFileClickded(){
-
+    m_pFileListWidget->clear();
+    showImportFileCount();
 }
 
 void CFileTab::onAddExtClickded(){
+    QString strType = m_pExtLineEdit->text();
 
+    if(strType.isEmpty())
+        return;
+
+    if(strType.left(1).compare(".") != 0){
+        strType = "." + strType;
+    }
+    if(m_pExtListWidget->findItems(strType, Qt::MatchExactly).isEmpty())
+        m_pExtListWidget->addItem(strType);
+    m_pExtLineEdit->clear();
 }
 
 void CFileTab::onRemoveExtClickded(){
-
+    qDeleteAll(m_pExtListWidget->selectedItems());
 }
 
 void CFileTab::onClearExtClickded(){
-
+    m_pExtListWidget->clear();
 }
 
 void CFileTab::onFileSelectionChangeded(){
-
+    QList<QListWidgetItem*> listSel = m_pFileListWidget->selectedItems();
+    m_pSelectLabel->setText(QString::number(listSel.size()) + STR_FILE_SELECTED);
 }
