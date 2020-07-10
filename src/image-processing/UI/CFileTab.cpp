@@ -29,7 +29,11 @@ CFileTab::CFileTab(QWidget *parent) : QWidget(parent)
 }
 
 QList<QString> CFileTab::getImagePaths(){
-
+    QList<QString> list;
+    for(int i=0; i<m_pFileListWidget->count(); i++){
+        list.append(m_pFileListWidget->item(i)->text());
+    }
+    return list;
 }
 
 //private:
