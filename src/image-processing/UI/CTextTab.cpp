@@ -109,21 +109,58 @@ void CTextTab::initUI(){
 
 //private slots:
 void CTextTab::onAddTextClicked(){
-
+    if(!m_pSpinEdit->text().isEmpty())
+        m_pTextList->addItem(m_pSpinEdit->text());
 }
 
 void CTextTab::onRemoveClicked(){
-
+    qDeleteAll(m_pTextList->selectedItems());
 }
 
 void CTextTab::onClearClicked(){
-
+    m_pTextList->clear();
 }
 
 void CTextTab::onAddCSVClicked(){
+    QStringList files = QFileDialog::getOpenFileNames(this,
+                                                      "Select one or more files to open",
+                                                      "/home",
+                                                      "Excel Files (*.csv)");
+    for(int i=0; i<files.size(); i++){
+        QFile file(files.at(i));
+        if (!file.open(QIODevice::ReadOnly)) {
+            qDebug() << file.errorString();
+            return;
+        }
 
+        QStringList wordList;
+        while (!file.atEnd()) {
+            QByteArray line = file.readLine();
+            QList<QByteArray> lineItems = line.split(',');
+            for(int i=0; i<lineItems.size(); i++)
+                wordList.append(lineItems.at(i));
+        }
+        m_pTextList->addItems(wordList);
+    }
 }
 
 void CTextTab::onAddTXTClicked(){
+    QStringList files = QFileDialog::getOpenFileNames(this,
+                                                      "Select one or more files to open",
+                                                      "/home",
+                                                      "Text Files (*.txt)");
+    for(int i=0; i<files.size(); i++){
+        QFile file(files.at(i));
+        if (!file.open(QIODevice::ReadOnly)) {
+            qDebug() << file.errorString();
+            return;
+        }
 
+        QStringList wordList;
+        while (!file.atEnd()) {
+            QByteArray line = file.readLine();
+            wordList.append(line);
+        }
+        m_pTextList->addItems(wordList);
+    }
 }
