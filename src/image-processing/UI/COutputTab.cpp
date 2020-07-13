@@ -101,21 +101,41 @@ void COutputTab::initUI(){
 
 //private slots:
 void COutputTab::onOutputClicked(){
+    QString directory =
+        QDir::toNativeSeparators(QFileDialog::getExistingDirectory(this, tr("Find Files"), QDir::currentPath()));
 
+    if (!directory.isEmpty()) {
+        m_pOutputEdit->setText(directory);
+    }
 }
 
 void COutputTab::onMergeClicked(){
-
+    CMergeThread *pMergeThread = new CMergeThread(this);
+    connect(pMergeThread, SIGNAL(processing(int)), this, SLOT(onProcessing(int)));
+    connect(pMergeThread, SIGNAL(finished()), this, SLOT(onProcessingFinished()));
+    connect(pMergeThread, SIGNAL(finished()), pMergeThread, SLOT(deleteLater()));
+    pMergeThread->start();
+    m_pProgressBar->setValue(0);
+    m_pStartMergeBtn->setEnabled(false);
 }
 
 void COutputTab::onTemplateClicked(){
+    QObject *object = QObject::sender();
+    QRadioButton* pbtn = qobject_cast<QRadioButton*>(object);
+    QString name = pbtn->text();
 
+    QPixmap img = QPixmap(":/images/" + name + ".png");
+    m_pTemplateLabel->setPixmap(img);
 }
 
 void COutputTab::onProcessing(int index){
-
+    int nVal;
+    nVal = index * 100 / m_pImageNumSpin->value();
+    m_pProgressBar->setValue(nVal);
 }
 
 void COutputTab::onProcessingFinished(){
-
+    QMessageBox::information(this, "Info", "Process Successful.");
+    m_pStartMergeBtn->setEnabled(true);
+    m_pProgressBar->setValue(0);
 }
