@@ -198,19 +198,303 @@ void CMergeThread::template2(QList<QString> listFiles){
 }
 
 void CMergeThread::template3(QList<QString> listFiles){
+    QImage sourceImg[2];
+    QImage txtImg;
+    int nW, nH;
+    int nImageCount;
 
+    nImageCount = g_ImageCount[m_outputInfo.m_nTemplate];
+    nW = PANEL_SIZE + 2 * INTERVAL_SIZE;
+    nH = PANEL_SIZE*2 + 3 * INTERVAL_SIZE;
+
+    for(int i=0; i < nImageCount; i++){
+        sourceImg[i] = QImage(listFiles.at(i));
+    }
+
+    if(m_textInfo.m_bIsArea){//insert area
+        if(m_textInfo.m_nAreaPos != NONE_AREA){
+            txtImg = getAreaImage(PANEL_SIZE);
+            nH += txtImg.height();
+            nH += INTERVAL_SIZE;
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        switch (m_textInfo.m_nAreaPos) {
+        case TOP:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, txtImg);
+            for(int i=0; i < nImageCount; i++){
+                painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+2) + PANEL_SIZE*i + txtImg.height(), sourceImg[i]);
+            }
+            break;
+        case MIDDLE:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, txtImg);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[1]);
+            break;
+        case BOTTOM:
+            for(int i=0; i < nImageCount; i++){
+                painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+1) + PANEL_SIZE*i, sourceImg[i]);
+            }
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE * (nImageCount+1) + PANEL_SIZE*2, txtImg);
+            break;
+        default:
+            for(int i=0; i < nImageCount; i++){
+                painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+1) + PANEL_SIZE*i, sourceImg[i]);
+            }
+            break;
+        }
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
+    else{//overlay
+        if(m_textInfo.m_nOverlayPos != NONE_OVERLAY){
+            txtImg = getOverlayImage(PANEL_SIZE * 0.7);
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        for(int i=0; i < nImageCount; i++){
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+1) + PANEL_SIZE*i, sourceImg[i]);
+        }
+
+        addTextOverlayImage(painter, targetImg, txtImg);
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
 }
 
 void CMergeThread::template4(QList<QString> listFiles){
+    QImage sourceImg[4];
+    QImage txtImg;
+    int nW, nH;
+    int nImageCount;
 
+    nImageCount = g_ImageCount[m_outputInfo.m_nTemplate];
+    nW = PANEL_SIZE*2 + 3 * INTERVAL_SIZE;
+    nH = PANEL_SIZE*2 + 3 * INTERVAL_SIZE;
+
+    for(int i=0; i < nImageCount; i++){
+        sourceImg[i] = QImage(listFiles.at(i));
+    }
+
+    if(m_textInfo.m_bIsArea){//insert area
+        if(m_textInfo.m_nAreaPos != NONE_AREA){
+            txtImg = getAreaImage(PANEL_SIZE*2 + INTERVAL_SIZE);
+            nH += txtImg.height();
+            nH += INTERVAL_SIZE;
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        switch (m_textInfo.m_nAreaPos) {
+        case TOP:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, txtImg);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + txtImg.height(), sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + txtImg.height(), sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[3]);
+            break;
+        case MIDDLE:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, txtImg);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[3]);
+            break;
+        case BOTTOM:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[3]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE*2, txtImg);
+            break;
+        default:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[3]);
+            break;
+        }
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
+    else{//overlay
+        if(m_textInfo.m_nOverlayPos != NONE_OVERLAY){
+            txtImg = getOverlayImage(PANEL_SIZE * 0.7);
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+        painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+        painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[2]);
+        painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[3]);
+
+        addTextOverlayImage(painter, targetImg, txtImg);
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
 }
 
 void CMergeThread::template5(QList<QString> listFiles){
+    QImage sourceImg[3];
+    QImage txtImg;
+    int nW, nH;
+    int nImageCount;
 
+    nImageCount = g_ImageCount[m_outputInfo.m_nTemplate];
+    nW = PANEL_SIZE + 2 * INTERVAL_SIZE;
+    nH = PANEL_SIZE*3 + 4 * INTERVAL_SIZE;
+
+    for(int i=0; i < nImageCount; i++){
+        sourceImg[i] = QImage(listFiles.at(i));
+    }
+
+    if(m_textInfo.m_bIsArea){//insert area
+        if(m_textInfo.m_nAreaPos == TOP || m_textInfo.m_nAreaPos == BOTTOM){
+            txtImg = getAreaImage(PANEL_SIZE);
+            nH += txtImg.height();
+            nH += INTERVAL_SIZE;
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        switch (m_textInfo.m_nAreaPos) {
+        case TOP:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, txtImg);
+            for(int i=0; i < nImageCount; i++){
+                painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+2) + PANEL_SIZE*i + txtImg.height(), sourceImg[i]);
+            }
+            break;
+        case BOTTOM:
+            for(int i=0; i < nImageCount; i++){
+                painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+1) + PANEL_SIZE*i, sourceImg[i]);
+            }
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE * (nImageCount+1) + PANEL_SIZE*2, txtImg);
+            break;
+        default:
+            for(int i=0; i < nImageCount; i++){
+                painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+1) + PANEL_SIZE*i, sourceImg[i]);
+            }
+            break;
+        }
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
+    else{//overlay
+        if(m_textInfo.m_nOverlayPos != NONE_OVERLAY){
+            txtImg = getOverlayImage(PANEL_SIZE * 0.7);
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        for(int i=0; i < nImageCount; i++){
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*(i+1) + PANEL_SIZE*i, sourceImg[i]);
+        }
+
+        addTextOverlayImage(painter, targetImg, txtImg);
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
 }
 
 void CMergeThread::template6(QList<QString> listFiles){
+    QImage sourceImg[5];
+    QImage txtImg;
+    int nW, nH;
+    int nImageCount;
 
+    nImageCount = g_ImageCount[m_outputInfo.m_nTemplate];
+    nW = PANEL_SIZE*2 + 3 * INTERVAL_SIZE;
+    nH = PANEL_SIZE*2 + 3 * INTERVAL_SIZE;
+
+    for(int i=0; i < nImageCount; i++){
+        sourceImg[i] = QImage(listFiles.at(i));
+    }
+
+    QImage popupImg((PANEL_SIZE + INTERVAL_SIZE*2), (PANEL_SIZE + INTERVAL_SIZE*2), QImage::Format_ARGB32_Premultiplied);
+    QPainter painterPop(&popupImg);
+    painterPop.fillRect(popupImg.rect(), Qt::white);
+    painterPop.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, QImage(listFiles[nImageCount-1]));
+    painterPop.end();
+
+    if(m_textInfo.m_bIsArea){//insert area
+        if(m_textInfo.m_nAreaPos == TOP || m_textInfo.m_nAreaPos == BOTTOM){
+            txtImg = getAreaImage(PANEL_SIZE*2 + INTERVAL_SIZE);
+            nH += txtImg.height();
+            nH += INTERVAL_SIZE;
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        switch (m_textInfo.m_nAreaPos) {
+        case TOP:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, txtImg);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + txtImg.height(), sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + txtImg.height(), sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE + txtImg.height(), sourceImg[3]);
+            break;
+        case BOTTOM:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[3]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*3 + PANEL_SIZE*2, txtImg);
+            break;
+        default:
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+            painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[2]);
+            painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[3]);
+            break;
+        }
+
+        painter.drawImage((targetImg.width()-popupImg.width())/2, (targetImg.height()-popupImg.height())/2, popupImg);
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
+    else{//overlay
+        if(m_textInfo.m_nOverlayPos != NONE_OVERLAY){
+            txtImg = getOverlayImage(PANEL_SIZE * 0.7);
+        }
+
+        QImage targetImg(nW, nH, QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&targetImg);
+        painter.fillRect(targetImg.rect(), Qt::white);
+
+        painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE, sourceImg[0]);
+        painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE, sourceImg[1]);
+        painter.drawImage(INTERVAL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[2]);
+        painter.drawImage(INTERVAL_SIZE*2 + PANEL_SIZE, INTERVAL_SIZE*2 + PANEL_SIZE, sourceImg[3]);
+
+        painter.drawImage((targetImg.width()-popupImg.width())/2, (targetImg.height()-popupImg.height())/2, popupImg);
+        addTextOverlayImage(painter, targetImg, txtImg);
+
+        painter.end();
+        targetImg.save(getOutputFilePath());
+    }
 }
 
 QImage CMergeThread::getAreaImage(int nW){
